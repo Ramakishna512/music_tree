@@ -16,10 +16,9 @@ pipeline {
         stage('Build Spring Boot Backend') {
             steps {
                 dir('spotify-api-server') {
-                    sh '''
-                    export PATH=$PATH:/opt/homebrew/bin
-                    mvn clean package -DskipTests
-                    '''
+                    bat """
+                        mvn clean package -DskipTests
+                    """
                 }
             }
         }
@@ -27,36 +26,30 @@ pipeline {
         stage('Install Frontend Dependencies & Build') {
             steps {
                 dir('spotify-api-ui') {
-                    withEnv([
-                        'PATH+HOME=/opt/homebrew/bin',
-                    ]) {
-                        sh '''
+                    bat """
                         npm ci
                         npm run build
-                        '''
-                    }
+                    """
                 }
             }
         }
 
         stage('Build Docker Images') {
-    steps {
-        sh '''
-           export PATH=/usr/local/bin:$PATH
-           docker-compose build
-        '''
-    }
-}
+            steps {
+                bat """
+                    docker-compose build
+                """
+            }
+        }
 
-stage('Run Containers') {
-    steps {
-        sh '''
-           export PATH=/usr/local/bin:$PATH
-           docker-compose down
-           docker-compose up -d
-        '''
-    }
-}
+        stage('Run Containers') {
+            steps {
+                bat """
+                    docker-compose down
+                    docker-compose up -d
+                """
+            }
+        }
     }
 
     post {
