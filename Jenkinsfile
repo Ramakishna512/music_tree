@@ -26,7 +26,7 @@ pipeline {
 
         stage('Install Frontend Dependencies & Build') {
             steps {
-                dir('frontend') {
+                dir('spotify-api-ui') {
                     bat 'npm install'
                     bat 'npm run build'
                 }
