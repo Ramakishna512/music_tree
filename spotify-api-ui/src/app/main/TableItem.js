@@ -1,11 +1,11 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import Rating from "pre-rating/lib/Rating";
 import "./SpotifyApp.css";
 import PropTypes from "prop-types";
 
 export default class TableItem extends Component {
 
-    static propTypes:Map = {
+    static propTypes = {
         /**
          * Data of Albums and Artists
          */
@@ -26,33 +26,40 @@ export default class TableItem extends Component {
 
     render() {
 
-        let data = this.props.data;
-        let image = this.props.image;
-        
-        // Debug logging to see the data structure
+        const { data, image } = this.props;
+
+        // Debug logging
         console.log('Track data:', data);
         console.log('Preview URL:', data.preview_url);
 
         return (
             <tr>
-                <td className="alignTd"><img src={image} alt="55x55" width="55"
-                                                                           height="55"/></td>
+                <td className="alignTd">
+                    <img src={image} alt="55x55" width="55" height="55"/>
+                </td>
                 <td className="alignTd">{data.artists[0].name}</td>
                 <td className="alignTd">{data.name}</td>
                 <td className="alignTd">{data.album.name}</td>
                 <td className="alignTd">{data.album.album_type}</td>
                 <td className="alignTd">{data.type}</td>
-                <td className="alignTd"><Rating size={0}
-                                                currentValue={data.popularity / 10}
-                                                disabled
-                /></td>
+                <td className="alignTd">
+                    <Rating 
+                        size={0}
+                        currentValue={data.popularity / 10}
+                        disabled
+                    />
+                </td>
                 <td className="alignTd">
                     {data.preview_url ? (
                         <i 
                             className={`fa ${this.state.isPlaying ? 'fa-pause' : 'fa-play'}`} 
                             aria-hidden="true"
-                            onClick={this.__playButtonClick.bind(this, data.preview_url)}
-                            style={{cursor: 'pointer', color: this.state.isPlaying ? '#1db954' : '#333', fontSize: '16px'}}
+                            onClick={() => this.__playButtonClick(data.preview_url)}
+                            style={{
+                                cursor: 'pointer', 
+                                color: this.state.isPlaying ? '#1db954' : '#333', 
+                                fontSize: '16px'
+                            }}
                             title={`${this.state.isPlaying ? 'Pause' : 'Play'} 30-second preview`}
                         />
                     ) : (
@@ -77,62 +84,51 @@ export default class TableItem extends Component {
         
         if (!url) {
             console.log('No preview URL available for this track');
-            alert('No preview available for this track. This might be due to licensing restrictions or an expired Spotify API token.');
+            alert('No preview available for this track.');
             return;
         }
 
-        if (this.state.isPlaying && this.state.audio) {
-            // If currently playing, pause the audio
-            this.state.audio.pause();
+        const { audio, isPlaying } = this.state;
+
+        if (isPlaying && audio) {
+            audio.pause();
             this.setState({ isPlaying: false });
             console.log('Audio paused');
         } else {
-            // If not playing, create new audio and play
-            if (this.state.audio) {
-                this.state.audio.pause();
-            }
-            
-            const audio = new Audio(url);
-            
-            // Set up event listeners
-            audio.addEventListener('ended', () => {
+            if (audio) audio.pause();
+
+            const newAudio = new Audio(url);
+
+            // Event listeners
+            newAudio.addEventListener('ended', () => {
                 console.log('Audio playback ended');
                 this.setState({ isPlaying: false });
             });
-            
-            audio.addEventListener('error', (e) => {
+
+            newAudio.addEventListener('error', (e) => {
                 console.error('Error playing audio:', e);
-                console.error('Audio error details:', e.target.error);
-                this.setState({ isPlaying: false });
-                alert(`Error playing audio: ${e.target.error ? e.target.error.message : 'Unknown error'}`);
+                this.setState({ isPlaying: false, audio: null });
+                alert(`Error playing audio: ${e.target.error?.message || 'Unknown error'}`);
             });
-            
-            audio.addEventListener('loadstart', () => {
-                console.log('Started loading audio');
-            });
-            
-            audio.addEventListener('canplay', () => {
-                console.log('Audio can start playing');
-            });
-            
-            // Play the audio
-            console.log('Attempting to play audio...');
-            audio.play().then(() => {
+
+            newAudio.addEventListener('loadstart', () => console.log('Started loading audio'));
+            newAudio.addEventListener('canplay', () => console.log('Audio can start playing'));
+
+            newAudio.play().then(() => {
                 console.log('Audio playback started successfully');
-                this.setState({ isPlaying: true, audio: audio });
+                this.setState({ isPlaying: true, audio: newAudio });
             }).catch((error) => {
                 console.error('Error playing audio:', error);
-                this.setState({ isPlaying: false });
+                this.setState({ isPlaying: false, audio: null });
                 alert(`Cannot play audio: ${error.message}`);
             });
         }
     };
 
     componentWillUnmount() {
-        // Clean up audio when component unmounts
         if (this.state.audio) {
             this.state.audio.pause();
-            this.state.audio = null;
+            this.setState({ audio: null, isPlaying: false });
         }
     }
 }
