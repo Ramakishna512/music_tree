@@ -25,10 +25,9 @@ export default class TableItem extends Component {
     }
 
     render() {
+        const data = this.props.data;
+        const image = this.props.image;
 
-        const { data, image } = this.props;
-
-        // Debug logging
         console.log('Track data:', data);
         console.log('Preview URL:', data.preview_url);
 
@@ -54,12 +53,8 @@ export default class TableItem extends Component {
                         <i 
                             className={`fa ${this.state.isPlaying ? 'fa-pause' : 'fa-play'}`} 
                             aria-hidden="true"
-                            onClick={() => this.__playButtonClick(data.preview_url)}
-                            style={{
-                                cursor: 'pointer', 
-                                color: this.state.isPlaying ? '#1db954' : '#333', 
-                                fontSize: '16px'
-                            }}
+                            onClick={this.__playButtonClick.bind(this, data.preview_url)}
+                            style={{cursor: 'pointer', color: this.state.isPlaying ? '#1db954' : '#333', fontSize: '16px'}}
                             title={`${this.state.isPlaying ? 'Pause' : 'Play'} 30-second preview`}
                         />
                     ) : (
@@ -81,39 +76,49 @@ export default class TableItem extends Component {
 
     __playButtonClick = (url) => {
         console.log('Attempting to play preview URL:', url);
-        
+
         if (!url) {
             console.log('No preview URL available for this track');
-            alert('No preview available for this track.');
+            alert('No preview available for this track. This might be due to licensing restrictions or an expired Spotify API token.');
             return;
         }
 
-        const { audio, isPlaying } = this.state;
+        const currentAudio = this.state.audio;
 
-        if (isPlaying && audio) {
-            audio.pause();
+        if (this.state.isPlaying && currentAudio) {
+            currentAudio.pause();
             this.setState({ isPlaying: false });
             console.log('Audio paused');
         } else {
-            if (audio) audio.pause();
+            if (currentAudio) {
+                currentAudio.pause();
+            }
 
             const newAudio = new Audio(url);
 
-            // Event listeners
             newAudio.addEventListener('ended', () => {
                 console.log('Audio playback ended');
-                this.setState({ isPlaying: false });
+                this.setState({ isPlaying: false, audio: null });
             });
 
             newAudio.addEventListener('error', (e) => {
                 console.error('Error playing audio:', e);
                 this.setState({ isPlaying: false, audio: null });
-                alert(`Error playing audio: ${e.target.error?.message || 'Unknown error'}`);
+
+                // Avoid optional chaining for older Node/Babel
+                const msg = e.target && e.target.error && e.target.error.message ? e.target.error.message : 'Unknown error';
+                alert(`Error playing audio: ${msg}`);
             });
 
-            newAudio.addEventListener('loadstart', () => console.log('Started loading audio'));
-            newAudio.addEventListener('canplay', () => console.log('Audio can start playing'));
+            newAudio.addEventListener('loadstart', () => {
+                console.log('Started loading audio');
+            });
 
+            newAudio.addEventListener('canplay', () => {
+                console.log('Audio can start playing');
+            });
+
+            console.log('Attempting to play audio...');
             newAudio.play().then(() => {
                 console.log('Audio playback started successfully');
                 this.setState({ isPlaying: true, audio: newAudio });
@@ -128,7 +133,7 @@ export default class TableItem extends Component {
     componentWillUnmount() {
         if (this.state.audio) {
             this.state.audio.pause();
-            this.setState({ audio: null, isPlaying: false });
+            this.setState({ audio: null });
         }
     }
 }
