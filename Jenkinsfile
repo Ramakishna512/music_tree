@@ -2,11 +2,12 @@ pipeline {
     agent any
 
     tools {
-        maven 'MAVEN_HOME'          // Maven configured in Jenkins Global Tool Config
+        maven 'MAVEN_HOME' // Make sure this is configured in Jenkins
     }
 
     environment {
-        DOCKER_IMAGE = "music_app:latest"
+        BACKEND_IMAGE = "music-backend:latest"
+        FRONTEND_IMAGE = "music-frontend:latest"
     }
 
     stages {
@@ -24,24 +25,34 @@ pipeline {
             }
         }
 
-        stage('Install Frontend Dependencies & Build') {
+        stage('Build Frontend') {
             steps {
                 dir('spotify-api-ui') {
-                    bat 'npm install'
-                    bat 'npm run build'
+                    // Avoid CI=true breaking the build
+                    bat 'set CI=false && npm install'
+                    bat 'set CI=false && npm run build'
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Images') {
             steps {
-                bat "docker build -t %DOCKER_IMAGE% ."
+                // Build backend image
+                dir('spotify-api-server') {
+                    bat "docker build -t ${BACKEND_IMAGE} ."
+                }
+
+                // Build frontend image
+                dir('spotify-api-ui') {
+                    bat "docker build -t ${FRONTEND_IMAGE} ."
+                }
             }
         }
 
         stage('Run Containers') {
             steps {
-                bat "docker-compose up -d"
+                // Run both containers via docker-compose
+                bat "docker-compose up -d --build"
             }
         }
     }
