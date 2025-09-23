@@ -16,9 +16,7 @@ pipeline {
         stage('Build Spring Boot Backend') {
             steps {
                 dir('spotify-api-server') {
-                    bat """
-                        mvn clean package -DskipTests
-                    """
+                    bat "mvn clean package -DskipTests || exit 1"
                 }
             }
         }
@@ -26,19 +24,9 @@ pipeline {
         stage('Install Frontend Dependencies & Build') {
             steps {
                 dir('spotify-api-ui') {
-                    bat """
-                        npm ci
-                        npm run build
-                    """
+                    bat "npm ci || exit 1"
+                    bat "npm run build || exit 1"
                 }
-            }
-        }
-
-        stage('Build Docker Images') {
-            steps {
-                bat """
-                    docker-compose build
-                """
             }
         }
 
@@ -46,7 +34,7 @@ pipeline {
             steps {
                 bat """
                     docker-compose down
-                    docker-compose up -d
+                    docker-compose up --build -d
                 """
             }
         }
