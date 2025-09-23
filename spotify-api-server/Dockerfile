@@ -8,6 +8,12 @@ RUN mvn clean package -DskipTests
 # Stage 2: Run the application
 FROM eclipse-temurin:17-jre-focal
 WORKDIR /app
+
+# Copy the jar (use wildcard to match versioned jar)
 COPY --from=build /app/target/*.jar app.jar
+
+# Expose the port that Spring Boot listens on
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Run the jar
+ENTRYPOINT ["java","-jar","app.jar"]
