@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        maven 'MAVEN_HOME'
+    }
 
     environment {
         COMPOSE_FILE = 'docker-compose.yml'
