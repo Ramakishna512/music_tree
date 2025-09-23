@@ -1,0 +1,7 @@
+server:
+  servlet-path: /rest/
+  port: 8081
+
+# Get a new token from: https://developer.spotify.com/web-api/console/get-search-item/
+# Replace the token below with your new token
+token: "BQCtp2seg_7nj0yNb8crxKQnGf_QY4P9IKf-IpsmSqiaDn1KeYVMJsox19DBFBZ7RI3orsllyPOIg-X2JOc1bcDapldYwdnJCosOZR5l1_11XiI4DLWW_YMluuzJ7J9PC6V3ySUuTe4"

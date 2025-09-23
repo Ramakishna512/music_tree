@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./spotify-api-server
+      dockerfile: Dockerfile
+    container_name: music-backend
+    ports:
+      - "8081:8081"
+    networks:
+      - musicnet
+
+  frontend:
+    build:
+      context: ./spotify-api-ui
+      dockerfile: Dockerfile
+    container_name: music-frontend
+    ports:
+      - "3001:3000"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - musicnet
+
+networks:
+  musicnet:
+    driver: bridge
