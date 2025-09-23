@@ -17,7 +17,7 @@ services:
       dockerfile: Dockerfile
     container_name: music-frontend
     ports:
-      - "3001:3000"
+      - "3001:80"   # Nginx serves on port 80 inside container
     depends_on:
       - backend
     networks:
