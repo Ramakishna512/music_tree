@@ -1,16 +1,16 @@
 pipeline {
     agent any
+
     tools {
-        maven 'MAVEN_HOME'
+        maven 'MAVEN_HOME'          // Maven configured in Jenkins Global Tool Config
     }
 
     environment {
-        COMPOSE_FILE = 'docker-compose.yml'
+        DOCKER_IMAGE = "music_app:latest"
     }
 
     stages {
-
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
                 checkout scm
             }
@@ -19,33 +19,36 @@ pipeline {
         stage('Build Spring Boot Backend') {
             steps {
                 dir('spotify-api-server') {
-                    bat "mvn clean package -DskipTests || exit 1"
+                    bat 'mvn clean package -DskipTests'
                 }
             }
         }
 
         stage('Install Frontend Dependencies & Build') {
             steps {
-                dir('spotify-api-ui') {
-                    bat "npm ci || exit 1"
-                    bat "npm run build || exit 1"
+                dir('frontend') {
+                    bat 'npm install'
+                    bat 'npm run build'
                 }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %DOCKER_IMAGE% ."
             }
         }
 
         stage('Run Containers') {
             steps {
-                bat """
-                    docker-compose down
-                    docker-compose up --build -d
-                """
+                bat "docker-compose up -d"
             }
         }
     }
 
     post {
         success {
-            echo "Deployment successful!"
+            echo "Pipeline completed successfully!"
         }
         failure {
             echo "Something went wrong during the pipeline."
