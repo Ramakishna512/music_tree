@@ -43,6 +43,3 @@ and project will start at ```
                           http://127.0.0.1:3000
                           ```
 
-## License
-
-The MIT License (MIT) Copyright (c) 2017 Fatih Totrakanlı
