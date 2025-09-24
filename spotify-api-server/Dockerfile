@@ -10,8 +10,10 @@ FROM eclipse-temurin:17-jre-focal
 WORKDIR /app
 
 # Copy the jar (use wildcard to match versioned jar)
-COPY --from=build /target/*.jar app.jar
 
+COPY --from=build /target/*.jar app.jar
+replace this with 
+COPY --from=build /app/target/*.jar app.jar
 # Expose the port that Spring Boot listens on
 EXPOSE 8081
 
